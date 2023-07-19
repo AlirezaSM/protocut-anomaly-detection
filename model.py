@@ -136,6 +136,30 @@ class ProtoVAE(nn.Module):
                 nn.ReLU(),
                 nn.Linear(latent * 2, latent * 2)
             )
+        elif (data_name == "mvtec"):
+            self.features = nn.Sequential(  ###### CIFAR-10
+                nn.Conv2d(in_channels=3, out_channels=32, kernel_size=3, stride=1, padding=1),
+                nn.ReLU(),
+                nn.BatchNorm2d(32),
+                nn.AvgPool2d(2, stride=2), ##128
+                nn.Conv2d(in_channels=32, out_channels=64, kernel_size=3, stride=1, padding=1),
+                nn.ReLU(),
+                nn.BatchNorm2d(64),
+                nn.AvgPool2d(2, stride=2), ##64
+                nn.Conv2d(in_channels=64, out_channels=128, kernel_size=3, stride=1, padding=1),
+                nn.ReLU(),
+                nn.BatchNorm2d(128),
+                nn.AvgPool2d(2, stride=2), ##32
+                nn.Conv2d(in_channels=128, out_channels=256, kernel_size=3, stride=1, padding=1),
+                nn.ReLU(),
+                nn.BatchNorm2d(256),
+                nn.AvgPool2d(2, stride=2), ##16
+
+                nn.Flatten(),
+                nn.Linear(256 * 16 * 16, latent * 2),
+                nn.ReLU(),
+                nn.Linear(latent * 2, latent * 2)
+            )
 
         if(data_name == "mnist" or data_name == "fmnist" ):
             self.decoder_layers = nn.Sequential(  ###### MNIST
@@ -267,6 +291,44 @@ class ProtoVAE(nn.Module):
                 nn.Conv2d(in_channels=32, out_channels=3, kernel_size=3, stride=1, padding=1),
 
             )
+        elif(data_name=="mvtec"):
+          self.decoder_layers = nn.Sequential(  ###### MVTecAT
+              nn.Linear(latent, 256 * 16 * 16),
+              nn.ReLU(inplace=True),
+              nn.BatchNorm1d(256 * 16 * 16),
+              View((-1, 256,16,16)),
+
+              nn.Conv2d(in_channels=256, out_channels=128, kernel_size=3, stride=1, padding=1),
+              nn.ReLU(),
+              nn.BatchNorm2d(128),
+              nn.ConvTranspose2d(128, 128, kernel_size=4, stride=2, padding=1),
+              nn.ReLU(),
+              nn.BatchNorm2d(128),    ##8x8
+
+              nn.Conv2d(in_channels=128, out_channels=64, kernel_size=3, stride=1, padding=1),
+              nn.ReLU(),
+              nn.BatchNorm2d(64),
+              nn.ConvTranspose2d(64, 64, kernel_size=4, stride=2, padding=1),
+              nn.ReLU(),
+              nn.BatchNorm2d(64),  ##16x16
+
+              nn.Conv2d(in_channels=64, out_channels=32, kernel_size=3, stride=1, padding=1),
+              nn.ReLU(),
+              nn.BatchNorm2d(32),
+              nn.ConvTranspose2d(32, 32, kernel_size=4, stride=2, padding=1),
+              nn.ReLU(),
+              nn.BatchNorm2d(32),  ##32x32
+
+              nn.Conv2d(in_channels=32, out_channels=32, kernel_size=3, stride=1, padding=1),
+              nn.ReLU(),
+              nn.BatchNorm2d(32),
+              nn.ConvTranspose2d(32, 32, kernel_size=4, stride=2, padding=1),
+              nn.ReLU(),
+              nn.BatchNorm2d(32),
+
+              nn.Conv2d(in_channels=32, out_channels=3, kernel_size=3, stride=1, padding=1),
+
+          )
 
         self._initialize_weights()
 

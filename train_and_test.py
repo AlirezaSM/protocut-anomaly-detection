@@ -16,8 +16,29 @@ def _train_or_test(model, optimizer=None, dataloader=None):
     total_orth_loss = 0
 
     for i, (image, label) in enumerate(dataloader):
-        input = image.to(device)
-        target = label.to(device)
+        if data_name == 'mvtec':
+          tmp_label = torch.zeros((image.shape[0] * 2), dtype=torch.int64)
+          tmp_label[image.shape[0]:] = 1
+          image = torch.cat((image, label), dim=0)
+          label = tmp_label
+
+          num_samples = image.shape[0]
+          indices = torch.randperm(num_samples)
+
+          # Use the random indices to shuffle both tensors
+          image = image[indices]
+          label = label[indices]
+
+          input = image.to(device)
+          target = label.to(device)
+
+          print(input.dtype, target.dtype)
+
+          # print("YAROOOOOOOOOOOO", image.shape, label.shape)
+        else:
+          input = image.to(device)
+          target = label.to(device)
+          # print(input.dtype, target.dtype)
 
         grad_req = torch.enable_grad() if is_train else torch.no_grad()
         with grad_req:

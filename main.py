@@ -114,7 +114,7 @@ elif (data_name == 'mvtec'):
     train_transform.transforms.append(transforms.Resize((size,size)))
     train_transform.transforms.append(cutpaste_type(transform = after_cutpaste_transform))
 
-    trainset = MVTecAT("Data/MVTecAD", defect_type, transform = train_transform, size=size)
+    trainset = MVTecAT("pytorch_cutpaste/Data", defect_type, transform = train_transform, size=size)
     # dataloader = DataLoader(Repeat(train_data, 3000), batch_size=batch_size, drop_last=True,
     #                         shuffle=True, num_workers=workers, collate_fn=cut_paste_collate_fn,
     #                         persistent_workers=True, pin_memory=True, prefetch_factor=5)
@@ -124,22 +124,22 @@ elif (data_name == 'mvtec'):
     test_transform.transforms.append(transforms.ToTensor())
     test_transform.transforms.append(transforms.Normalize(mean=[0.485, 0.456, 0.406],
                                                         std=[0.229, 0.224, 0.225]))
-    # testset = MVTecAT("Data/MVTecAD", defect_type, size, transform = test_transform, mode="test")
+    testset = MVTecAT("pytorch_cutpaste/Data", defect_type, size, transform = test_transform, mode="test")
     # dataloader_test = DataLoader(test_data_eval, batch_size=64,
     #                                 shuffle=False, num_workers=0)
 ###############################
 
 
 if data_name == 'mvtec':
-    train_loader = DataLoader(Repeat(trainset, 3000), batch_size=batch_size, drop_last=True,
+    train_loader = DataLoader(Repeat(trainset, 3000), batch_size=batch_size//2, drop_last=True,
                             shuffle=True, num_workers=workers, collate_fn=cut_paste_collate_fn,
                             persistent_workers=True, pin_memory=True)
     
-    # test_loader = DataLoader(testset, batch_size=64,
-    #                                 shuffle=False, num_workers=0)
+    test_loader = DataLoader(testset, batch_size=64,
+                                    shuffle=False, num_workers=0)
     
-    # test_loader_expl = DataLoader(testset, batch_size=1,
-    #                                 shuffle=False, num_workers=0)
+    test_loader_expl = DataLoader(testset, batch_size=1,
+                                    shuffle=False, num_workers=0)
 else:
     train_loader = torch.utils.data.DataLoader(trainset, batch_size=batch_size,
                                             shuffle=True, num_workers=num_workers)
@@ -159,6 +159,12 @@ dt = next(iter(train_loader))
 print(len(dt))
 print(dt[0].shape)
 print(dt[1].shape)
+
+dt = next(iter(test_loader))
+print(len(dt))
+print(dt[0].shape)
+print(dt[1].shape)
+
 print()
 
 ###############################
