@@ -124,6 +124,8 @@ class QuickDraw(Dataset):
         self.mode = mode
         self.root_dir = root_dir  # root_dir should be the one within which the '.npy' are present, categories.txt should also be present
 
+        print("DARAM MISAZAM")
+
         cat_file = open(self.root_dir + 'categories.txt', 'r')
         self.cat = cat_file.readlines()
         self.cat = [x.rstrip('\n') for x in self.cat]

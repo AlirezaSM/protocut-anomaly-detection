@@ -1,0 +1,5 @@
+/Data/MVTecAD
+/Data/MNIST
+.ipynb_checkpoints/
+__pycache__/
+/pytorch_cutpaste/Data

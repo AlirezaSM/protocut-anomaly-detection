@@ -79,3 +79,14 @@ if (data_name == "quickdraw"):
     data_path = data_path + 'quickdraw/'
 
 
+if (data_name == "mvtec"):
+    img_size = 256
+    latent = 512
+    num_prototypes = 100
+    num_classes = 2
+    batch_size = 32
+    lr = 1e-3
+    num_train_epochs = 10
+    data_path = data_path + 'pytorch_cutpaste/Data/'
+
+

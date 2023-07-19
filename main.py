@@ -12,6 +12,10 @@ import dataloader_qd as dl
 from settings import *
 from matplotlib.pyplot import show
 
+from torch.utils.data import DataLoader
+from pytorch_cutpaste.dataset import MVTecAT, Repeat
+from pytorch_cutpaste.cutpaste import CutPasteNormal, CutPasteScar, CutPaste3Way, CutPasteUnion, cut_paste_collate_fn
+
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 num_workers = 4 if torch.cuda.is_available() else 0
 
@@ -90,15 +94,76 @@ elif (data_name == "quickdraw"):
     trainset = dl.QuickDraw(ncat=num_classes, mode='train', root_dir=data_path)
     testset = dl.QuickDraw(ncat=num_classes, mode='test', root_dir=data_path)
 
+###############################
+# MY CODE
+###############################
+elif (data_name == 'mvtec'):
+    #PARAMETERS
+    size = 256
+    cutpaste_type =  CutPasteScar
+    defect_type = 'screw'
+    workers = 2
 
-train_loader = torch.utils.data.DataLoader(trainset, batch_size=batch_size,
-                                           shuffle=True, num_workers=num_workers)
+    after_cutpaste_transform = transforms.Compose([])
+    after_cutpaste_transform.transforms.append(transforms.ToTensor())
+    after_cutpaste_transform.transforms.append(transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                                                                    std=[0.229, 0.224, 0.225]))
 
-test_loader = torch.utils.data.DataLoader(testset, batch_size=batch_size,
-                                          shuffle=False, num_workers=num_workers)
+    train_transform = transforms.Compose([])
+    train_transform.transforms.append(transforms.ColorJitter(brightness=0.1, contrast=0.1, saturation=0.1, hue=0.1))
+    train_transform.transforms.append(transforms.Resize((size,size)))
+    train_transform.transforms.append(cutpaste_type(transform = after_cutpaste_transform))
 
-test_loader_expl = torch.utils.data.DataLoader(testset, batch_size=1,
-                                          shuffle=False, num_workers=num_workers)
+    trainset = MVTecAT("Data/MVTecAD", defect_type, transform = train_transform, size=size)
+    # dataloader = DataLoader(Repeat(train_data, 3000), batch_size=batch_size, drop_last=True,
+    #                         shuffle=True, num_workers=workers, collate_fn=cut_paste_collate_fn,
+    #                         persistent_workers=True, pin_memory=True, prefetch_factor=5)
+    
+    test_transform = transforms.Compose([])
+    test_transform.transforms.append(transforms.Resize((size,size)))
+    test_transform.transforms.append(transforms.ToTensor())
+    test_transform.transforms.append(transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                                                        std=[0.229, 0.224, 0.225]))
+    # testset = MVTecAT("Data/MVTecAD", defect_type, size, transform = test_transform, mode="test")
+    # dataloader_test = DataLoader(test_data_eval, batch_size=64,
+    #                                 shuffle=False, num_workers=0)
+###############################
+
+
+if data_name == 'mvtec':
+    train_loader = DataLoader(Repeat(trainset, 3000), batch_size=batch_size, drop_last=True,
+                            shuffle=True, num_workers=workers, collate_fn=cut_paste_collate_fn,
+                            persistent_workers=True, pin_memory=True)
+    
+    # test_loader = DataLoader(testset, batch_size=64,
+    #                                 shuffle=False, num_workers=0)
+    
+    # test_loader_expl = DataLoader(testset, batch_size=1,
+    #                                 shuffle=False, num_workers=0)
+else:
+    train_loader = torch.utils.data.DataLoader(trainset, batch_size=batch_size,
+                                            shuffle=True, num_workers=num_workers)
+
+    test_loader = torch.utils.data.DataLoader(testset, batch_size=batch_size,
+                                            shuffle=False, num_workers=num_workers)
+
+    test_loader_expl = torch.utils.data.DataLoader(testset, batch_size=1,
+                                            shuffle=False, num_workers=num_workers)
+
+
+###############################
+# MY CODE
+###############################
+print("my result")
+dt = next(iter(train_loader))
+print(len(dt))
+print(dt[0].shape)
+print(dt[1].shape)
+print()
+
+###############################
+
+
 
 print('data : ',data_name)
 print('training set size: {0}'.format(len(train_loader.dataset)))
